@@ -16,10 +16,10 @@ $isUsers     = (strpos($currentScript, '/users/') !== false);
 $isLogs      = (strpos($currentScript, 'logs.php') !== false);
 $isPhotos    = (strpos($currentScript, '/photos/') !== false);
 
-$dashboardUrl = "/RFP/{$role}/dashboard.php";
-$usersUrl = "/RFP/{$role}/users/index.php";
-$logsUrl = "/RFP/admin/logs.php";
-$photosUrl = "/RFP/{$role}/photos/index.php";
+$dashboardUrl = "/REFO/{$role}/dashboard.php";
+$usersUrl = "/REFO/{$role}/users/index.php";
+$logsUrl = "/REFO/admin/logs.php";
+$photosUrl = "/REFO/{$role}/photos/index.php";
 
 // Log every page navigation by a logged-in user (admin or manager).
 require_once __DIR__ . '/log_functions.php';
@@ -34,7 +34,7 @@ if (!empty($_SESSION['user_id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= h($pageTitle) ?></title>
-    <link rel="stylesheet" href="/RFP/assets/css/style.css?v=8">
+    <link rel="stylesheet" href="/REFO/assets/css/style.css?v=8">
     <?= $extraHead ?? '' ?>
 </head>
 <body>
@@ -59,7 +59,7 @@ if (!empty($_SESSION['user_id'])) {
     <?php if ($fullName): ?>
         <div class="topbar-right">
             <span class="topbar-user"><?= h($fullName) ?> (<?= h(ucfirst($role)) ?>)</span>
-            <a class="topbar-logout" href="/RFP/auth/logout.php">Logout</a>
+            <a class="topbar-logout" href="/REFO/auth/logout.php">Logout</a>
         </div>
     <?php endif; ?>
 </nav>
