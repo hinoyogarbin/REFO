@@ -13,8 +13,8 @@ $fullName = $_SESSION['full_name'] ?? '';
 $currentScript = $_SERVER['SCRIPT_NAME'] ?? '';
 $isDashboard = (strpos($currentScript, 'dashboard.php') !== false);
 $isUsers     = (strpos($currentScript, '/users/') !== false);
+$isPolygons  = (strpos($currentScript, '/polygons/') !== false);
 $isLogs      = (strpos($currentScript, 'logs.php') !== false);
-$isPhotos    = (strpos($currentScript, '/photos/') !== false);
 
 $dashboardUrl = "/REFO/{$role}/dashboard.php";
 $usersUrl = "/REFO/{$role}/users/index.php";
@@ -46,12 +46,13 @@ if (!empty($_SESSION['user_id'])) {
             <?php endif; ?>
             <?php if (in_array($role, ['admin', 'manager'], true)): ?>
                 <a class="topbar-item <?= $isUsers ? 'active' : '' ?>" href="<?= h($usersUrl) ?>">User Management</a>
+                <a class="topbar-item <?= $isPolygons ? 'active' : '' ?>" href="<?= h($polygonsUrl) ?>">CENRO Polygons</a>
+            <?php endif; ?>
+            <?php if ($role === 'user'): ?>
+                <a class="topbar-item <?= $isPolygons ? 'active' : '' ?>" href="<?= h($polygonsUrl) ?>">My Assigned Area</a>
             <?php endif; ?>
             <?php if ($role === 'admin'): ?>
                 <a class="topbar-item <?= $isLogs ? 'active' : '' ?>" href="<?= h($logsUrl) ?>">Activity Logs</a>
-            <?php endif; ?>
-            <?php if (in_array($role, ['admin', 'manager', 'user'], true)): ?>
-                <a class="topbar-item <?= $isPhotos ? 'active' : '' ?>" href="<?= h($photosUrl) ?>">Field Photos</a>
             <?php endif; ?>
         </div>
     </div>
