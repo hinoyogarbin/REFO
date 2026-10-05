@@ -293,6 +293,43 @@ a {
     color: #a13333;
 }
 
+.review-pending {
+    background-color: #fdf3d8;
+    border-color: #a17f1a;
+    color: #8a6a12;
+}
+
+.review-confirmed {
+    background-color: #e6f4ea;
+    border-color: #1a5c2e;
+    color: #1a5c2e;
+}
+
+.review-rejected {
+    background-color: #f4e6e6;
+    border-color: #a13333;
+    color: #a13333;
+}
+
+/* ---------- Field Photos ---------- */
+
+.photo-thumb {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border: 1px solid #cccccc;
+    display: block;
+}
+
+.photo-full {
+    max-width: 100%;
+    width: 480px;
+    height: auto;
+    border: 1px solid #cccccc;
+    display: block;
+    margin-bottom: 16px;
+}
+
 /* ---------- Details view ---------- */
 
 .details-box {
