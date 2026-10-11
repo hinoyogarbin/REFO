@@ -443,11 +443,9 @@ require_once __DIR__ . '/../header.php';
             </div>
         </form>
 
-        <hr class="divider">
+    <?php else: ?>
 
-    <?php endif; ?>
-
-    <?php // ---------- Upload form ---------- ?>
+    <?php // ---------- Upload form (hidden while choosing a coordinate system) ---------- ?>
     <form class="form form-wide" action="import.php" method="post" enctype="multipart/form-data">
         <input type="hidden" name="action" value="upload">
 
@@ -472,36 +470,13 @@ require_once __DIR__ . '/../header.php';
             or the automatic detection gets it wrong.
         </p>
 
-        <div class="info-box">
-            <h3>Uploading a Shapefile</h3>
-            <p>
-                A Shapefile is not a single file. Select the
-                <strong>.shp</strong>, <strong>.shx</strong>, <strong>.dbf</strong> and
-                <strong>.prj</strong> files together, or upload a <strong>.zip</strong>
-                archive containing them.
-            </p>
-            <p>
-                You can safely select every file in the folder — companion files that are
-                not needed (such as <strong>.sbn</strong>, <strong>.sbx</strong> or
-                <strong>.qix</strong>) are simply ignored.
-            </p>
-            <p>
-                If there is no <strong>.prj</strong> file, include the
-                <strong>.xml</strong> metadata file if you have one: the coordinate system
-                can often be read from it. Otherwise you will be asked to choose the
-                coordinate system, and can verify it on the preview map.
-            </p>
-            <p class="hint">
-                Nothing is saved until you have reviewed the boundary on the preview map
-                and confirmed the import.
-            </p>
-        </div>
-
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">Upload and Preview</button>
             <a class="btn" href="index.php">Cancel</a>
         </div>
     </form>
+
+    <?php endif; ?>
 
 <?php else: ?>
 
