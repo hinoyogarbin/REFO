@@ -73,6 +73,11 @@ require_once __DIR__ . '/../../includes/header.php';
                 <td data-label="Uploaded"><?= h(date('F j, Y g:i A', strtotime($p['uploaded_at']))) ?></td>
                 <td class="actions-cell" data-label="Actions">
                     <a href="view.php?id=<?= (int)$p['photo_id'] ?>">View</a>
+                    <form action="delete.php" method="post" class="inline-form"
+                          onsubmit="return confirm('Delete this photo permanently? This cannot be undone.');">
+                        <input type="hidden" name="id" value="<?= (int)$p['photo_id'] ?>">
+                        <button type="submit" class="link-button link-danger">Delete</button>
+                    </form>
                 </td>
             </tr>
         <?php endforeach; ?>

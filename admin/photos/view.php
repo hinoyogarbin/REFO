@@ -103,6 +103,11 @@ require_once __DIR__ . '/../../includes/header.php';
 
 <div class="form-actions">
     <a class="btn" href="index.php">Back to Field Photos</a>
+    <form action="delete.php" method="post" class="inline-form"
+          onsubmit="return confirm('Delete this photo permanently? This cannot be undone.');">
+        <input type="hidden" name="id" value="<?= (int)$photo['photo_id'] ?>">
+        <button type="submit" class="btn link-danger">Delete Photo</button>
+    </form>
 </div>
 
 <?php
@@ -113,12 +118,10 @@ if ($hasLocation) {
 
     $extraScripts = '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" '
         . 'integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>'
+        . '<script src="/REFO/assets/js/map_layers.js?v=3"></script>'
         . '<script>
             var map = L.map("photo-location-map").setView([' . (float)$mapLat . ', ' . (float)$mapLng . '], 17);
-            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                maxZoom: 19,
-                attribution: "&copy; OpenStreetMap contributors"
-            }).addTo(map);
+            addMapLayers(map);
 
             var marker = L.marker([' . (float)$mapLat . ', ' . (float)$mapLng . ']).addTo(map);
             marker.bindPopup(' . json_encode('<img src="' . $photoUrl . '" alt="Field photo" style="width:220px;height:auto;display:block;">') . ');

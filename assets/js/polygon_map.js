@@ -74,10 +74,18 @@
             scrollWheelZoom: options.interactive !== false
         }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+        // Street / Satellite switcher (assets/js/map_layers.js). Falls back to
+        // the plain street map if that file was not loaded.
+        var baseLayers = typeof global.addMapLayers === 'function'
+            ? global.addMapLayers(map)
+            : null;
+
+        if (!baseLayers) {
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+        }
 
         if (!polygons.length) {
             L.marker(DEFAULT_CENTER).addTo(map)
@@ -86,6 +94,7 @@
         }
 
         var layerGroup = L.featureGroup().addTo(map);
+        var drawn = [];
 
         polygons.forEach(function (polygon) {
             if (!polygon.rings || !polygon.rings.length) {
@@ -101,8 +110,30 @@
                 var layer = L.polygon(rings, style);
                 layer.bindPopup(buildPopup(polygon));
                 layer.addTo(layerGroup);
+                drawn.push({ layer: layer, style: style });
             });
         });
+
+        // The dark boundary colours disappear on satellite imagery, so use a
+        // bright outline there and the normal colours on the street map.
+        function applyBaseStyle() {
+            var onSatellite = !!(baseLayers && baseLayers.isSatellite());
+            drawn.forEach(function (item) {
+                item.layer.setStyle(onSatellite
+                    ? L.Util.extend({}, item.style, {
+                        color: '#ffeb3b',
+                        weight: 3,
+                        fillColor: '#ffeb3b',
+                        fillOpacity: 0.12
+                    })
+                    : item.style);
+            });
+        }
+
+        if (baseLayers) {
+            applyBaseStyle();
+            map.on('baselayerchange', applyBaseStyle);
+        }
 
         // Fit the view to the imported boundary rather than a guessed centre.
         try {

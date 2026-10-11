@@ -99,7 +99,7 @@ $extraScripts = '';
 if (!empty($polygons)) {
     $extraScripts = '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" '
         . 'integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>'
-        . '<script src="/REFO/assets/js/polygon_map.js?v=1"></script>'
+        . '<script src="/REFO/assets/js/map_layers.js?v=3"></script><script src="/REFO/assets/js/polygon_map.js?v=1"></script>'
         . '<script src="/REFO/assets/js/polygon_photo_map.js?v=1"></script>'
         . '<script>initPolygonPhotoMap("polygon-map", ' . jsonForScript($mapPayload) . ', ' . jsonForScript($photoMarkers) . ');</script>';
 }

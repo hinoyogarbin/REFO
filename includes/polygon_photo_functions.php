@@ -104,21 +104,31 @@ function getMappablePhotosForUser(int $userId, array $polygonIds): array
 
     $markers = [];
     foreach ($stmt->fetchAll() as $p) {
-        $markers[] = [
-            'id'         => (int)$p['photo_id'],
-            'polygon_id' => (int)$p['polygon_id'],
-            'lat'        => (float)$p['exif_latitude'],
-            'lng'        => (float)$p['exif_longitude'],
-            'thumb'      => PHOTO_UPLOAD_URL . $p['file_name'],
-            'taken'      => $p['exif_datetime'] ? date('F j, Y g:i A', strtotime($p['exif_datetime'])) : '',
-            'uploaded'   => date('F j, Y g:i A', strtotime($p['uploaded_at'])),
-            'status'     => $p['status'],
-            'label'      => ucfirst($p['status']),
-            'url'        => POLYGON_PHOTO_VIEW_URL . (int)$p['photo_id'],
-        ];
+        $markers[] = photoRowToMarker($p, POLYGON_PHOTO_VIEW_URL);
     }
 
     return $markers;
+}
+
+/**
+ * Turns a field_photos row (with GPS) into the marker shape that
+ * assets/js/polygon_photo_map.js expects. $viewUrlBase is the detail page
+ * for the person looking at the map, e.g. '/REFO/admin/photos/view.php?id='.
+ */
+function photoRowToMarker(array $p, string $viewUrlBase): array
+{
+    return [
+        'id'         => (int)$p['photo_id'],
+        'polygon_id' => (int)($p['polygon_id'] ?? 0),
+        'lat'        => (float)$p['exif_latitude'],
+        'lng'        => (float)$p['exif_longitude'],
+        'thumb'      => PHOTO_UPLOAD_URL . $p['file_name'],
+        'taken'      => $p['exif_datetime'] ? date('F j, Y g:i A', strtotime($p['exif_datetime'])) : '',
+        'uploaded'   => date('F j, Y g:i A', strtotime($p['uploaded_at'])),
+        'status'     => $p['status'],
+        'label'      => ucfirst($p['status']),
+        'url'        => $viewUrlBase . (int)$p['photo_id'],
+    ];
 }
 
 /**
