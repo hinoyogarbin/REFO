@@ -15,7 +15,7 @@
 require_once __DIR__ . '/../config/database.php';
 
 const PHOTO_UPLOAD_DIR   = __DIR__ . '/../uploads/field_photos/';
-const PHOTO_UPLOAD_URL   = '/RFP/uploads/field_photos/';
+const PHOTO_UPLOAD_URL   = '/REFO/uploads/field_photos/';
 const PHOTO_MAX_BYTES    = 8 * 1024 * 1024; // 8 MB
 const PHOTO_ALLOWED_MIME = ['image/jpeg' => 'jpg', 'image/png' => 'png'];
 

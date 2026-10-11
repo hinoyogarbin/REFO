@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../includes/role_check.php';
 requireRole('manager');
 require_once __DIR__ . '/../../includes/user_functions.php';
 require_once __DIR__ . '/../../includes/photo_functions.php';
+require_once __DIR__ . '/../../includes/polygon_photo_functions.php';
 
 $photoId = (int)($_GET['id'] ?? 0);
 $photo = $photoId ? findFieldPhotoWithNamesById($photoId) : null;
@@ -16,9 +17,11 @@ if (!$photo) {
 }
 
 $hasLocation = $photo['exif_latitude'] !== null;
+$areaLabel = getPolygonLabelsForPhotos([$photoId])[$photoId] ?? null;
 
 $extraHead = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" '
-    . 'integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">';
+    . 'integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">'
+    . '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=2">';
 
 $pageTitle = 'Field Photo Review';
 require_once __DIR__ . '/../../includes/header.php';
@@ -31,6 +34,10 @@ require_once __DIR__ . '/../../includes/header.php';
     <div class="details-row">
         <span class="details-label">Submitted By</span>
         <span class="details-value"><?= h($photo['uploader_name']) ?> (<?= h($photo['uploader_username']) ?>)</span>
+    </div>
+    <div class="details-row">
+        <span class="details-label">Assigned Area</span>
+        <span class="details-value"><?= $areaLabel !== null ? h($areaLabel) : 'Not linked to an area' ?></span>
     </div>
     <div class="details-row">
         <span class="details-label">Original Filename</span>
