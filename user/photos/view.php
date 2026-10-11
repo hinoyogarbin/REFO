@@ -19,7 +19,8 @@ if (!$photo || (int)$photo['user_id'] !== (int)$_SESSION['user_id']) {
 $hasLocation = $photo['exif_latitude'] !== null;
 
 $extraHead = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" '
-    . 'integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">';
+    . 'integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">'
+    . '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=2">';
 
 $pageTitle = 'Field Photo Details';
 require_once __DIR__ . '/../../includes/header.php';

@@ -15,11 +15,20 @@ $isDashboard = (strpos($currentScript, 'dashboard.php') !== false);
 $isUsers     = (strpos($currentScript, '/users/') !== false);
 $isPolygons  = (strpos($currentScript, '/polygons/') !== false);
 $isLogs      = (strpos($currentScript, 'logs.php') !== false);
+$isPhotos    = (strpos($currentScript, '/photos/') !== false);
 
 $dashboardUrl = "/REFO/{$role}/dashboard.php";
 $usersUrl = "/REFO/{$role}/users/index.php";
+$polygonsUrl = "/REFO/{$role}/polygons/index.php";
 $logsUrl = "/REFO/admin/logs.php";
-$photosUrl = "/REFO/{$role}/photos/index.php";
+$photosUrl = "/REFO/{$role}/photos/index.php?status=pending";
+
+// Pending field-photo uploads waiting for review (admin / manager only).
+$pendingPhotoCount = 0;
+if (in_array($role, ['admin', 'manager'], true)) {
+    require_once __DIR__ . '/polygon_photo_functions.php';
+    $pendingPhotoCount = countPendingFieldPhotos();
+}
 
 // Log every page navigation by a logged-in user (admin or manager).
 require_once __DIR__ . '/log_functions.php';
@@ -34,7 +43,7 @@ if (!empty($_SESSION['user_id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= h($pageTitle) ?></title>
-    <link rel="stylesheet" href="/REFO/assets/css/style.css?v=8">
+    <link rel="stylesheet" href="/REFO/assets/css/style.css?v=10">
     <?= $extraHead ?? '' ?>
 </head>
 <body>
@@ -47,6 +56,7 @@ if (!empty($_SESSION['user_id'])) {
             <?php if (in_array($role, ['admin', 'manager'], true)): ?>
                 <a class="topbar-item <?= $isUsers ? 'active' : '' ?>" href="<?= h($usersUrl) ?>">User Management</a>
                 <a class="topbar-item <?= $isPolygons ? 'active' : '' ?>" href="<?= h($polygonsUrl) ?>">CENRO Polygons</a>
+                <a class="topbar-item <?= $isPhotos ? 'active' : '' ?>" href="<?= h($photosUrl) ?>">Photo Reviews<?php if ($pendingPhotoCount > 0): ?> <span style="background:#c0392b;color:#ffffff;border-radius:10px;padding:1px 7px;font-size:12px;margin-left:4px;"><?= (int)$pendingPhotoCount ?></span><?php endif; ?></a>
             <?php endif; ?>
             <?php if ($role === 'user'): ?>
                 <a class="topbar-item <?= $isPolygons ? 'active' : '' ?>" href="<?= h($polygonsUrl) ?>">My Assigned Area</a>

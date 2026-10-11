@@ -13,16 +13,19 @@ requireLogin();
 require_once __DIR__ . '/../../includes/role_check.php';
 requireRole('user');
 require_once __DIR__ . '/../../includes/polygon_functions.php';
+require_once __DIR__ . '/../../includes/polygon_photo_functions.php';
 
 $currentUserId = (int)($_SESSION['user_id'] ?? 0);
 
 $polygons = getPolygonsForFieldUser($currentUserId);
 $mapPayload = buildMapPayload($polygons);
+$photoMarkers = getMappablePhotosForUser($currentUserId, array_column($polygons, 'polygon_id'));
 
 $pageTitle = 'My Assigned Area';
 
 $extraHead = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" '
-    . 'integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">';
+    . 'integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">'
+    . '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=2">';
 
 require_once __DIR__ . '/../../includes/header.php';
 ?>
@@ -73,6 +76,7 @@ require_once __DIR__ . '/../../includes/header.php';
 
         <div class="toolbar">
             <a class="btn" href="view.php?id=<?= (int)$polygon['polygon_id'] ?>">View Map</a>
+            <a class="btn btn-primary" href="photos.php?id=<?= (int)$polygon['polygon_id'] ?>">Upload Photos</a>
         </div>
 
         <hr class="divider">
@@ -84,6 +88,7 @@ require_once __DIR__ . '/../../includes/header.php';
             The official CENRO boundary of the area assigned to you.
         </p>
         <div id="polygon-map" class="dashboard-map"></div>
+    <?= polygonPhotoLegendHtml() ?>
     </div>
 
 <?php endif; ?>
@@ -94,8 +99,9 @@ $extraScripts = '';
 if (!empty($polygons)) {
     $extraScripts = '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" '
         . 'integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>'
-        . '<script src="/RFP/assets/js/polygon_map.js?v=1"></script>'
-        . '<script>initPolygonMap("polygon-map", ' . jsonForScript($mapPayload) . ');</script>';
+        . '<script src="/REFO/assets/js/polygon_map.js?v=1"></script>'
+        . '<script src="/REFO/assets/js/polygon_photo_map.js?v=1"></script>'
+        . '<script>initPolygonPhotoMap("polygon-map", ' . jsonForScript($mapPayload) . ', ' . jsonForScript($photoMarkers) . ');</script>';
 }
 
 require_once __DIR__ . '/../../includes/page_end.php';

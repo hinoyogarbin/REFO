@@ -1,0 +1,219 @@
+/*
+ * Mobile-friendly layout + photo marker styling for the Field User
+ * "My Assigned Area" pages. Loaded only on those pages, on top of
+ * style.css (which it does not modify).
+ */
+
+/* ---------- Map legend + popup (all screen sizes) ---------- */
+
+.photo-legend {
+    font-size: 13px;
+    color: #555555;
+    margin: 8px 0 0;
+}
+
+.legend-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 1px #888888;
+    vertical-align: middle;
+    margin: 0 4px 0 10px;
+}
+
+.legend-pending   { background: #e08a00; }
+.legend-confirmed { background: #1a5c2e; }
+.legend-rejected  { background: #b3261e; }
+
+.photo-popup {
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.photo-popup img {
+    display: block;
+    width: 200px;
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 6px;
+}
+
+.dashboard-map {
+    max-width: 100%;
+}
+
+/* ---------- Photo sizing (style.css has no rules for these) ---------- */
+
+/* Phone photos are thousands of pixels wide: never show them at full size. */
+.photo-thumb {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+    display: block;
+}
+
+.photo-full {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    max-height: 80vh;
+    object-fit: contain;
+    margin: 0 0 16px;
+}
+
+/* ---------- Tablets and phones ---------- */
+
+@media (max-width: 700px) {
+
+    .site-main {
+        padding: 16px;
+    }
+
+    h1 {
+        font-size: 22px;
+    }
+
+    /* Top bar: wrap instead of clipping Logout off screen. */
+    .topbar {
+        flex-wrap: wrap;
+    }
+
+    .topbar-left,
+    .topbar-nav {
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .topbar-item {
+        padding: 12px 14px;
+        flex: 1 1 auto;
+        text-align: center;
+    }
+
+    .topbar-right {
+        width: 100%;
+        justify-content: space-between;
+        padding: 8px 14px;
+        border-top: 1px solid #3a3a3a;
+    }
+
+    /* Detail boxes: label above value. */
+    .details-box {
+        max-width: 100%;
+    }
+
+    .details-row {
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .details-label {
+        width: auto;
+    }
+
+    /* Bigger, thumb-friendly map and controls. */
+    .dashboard-map {
+        height: 60vh;
+        min-height: 300px;
+    }
+
+    .form {
+        max-width: 100%;
+    }
+
+    .form input[type="file"] {
+        width: 100%;
+        font-size: 16px; /* stops iOS zooming into the field */
+    }
+
+    .btn {
+        min-height: 44px;
+        line-height: 26px;
+        text-align: center;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions .btn,
+    .toolbar .btn {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Any other table (e.g. the Field Photos list) scrolls inside itself
+       instead of stretching the whole page wider than the phone. */
+    .data-table:not(.photo-table) {
+        display: block;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Photo table becomes one card per photo. */
+    .photo-table,
+    .photo-table tbody,
+    .photo-table tr,
+    .photo-table td {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .photo-table thead {
+        position: absolute;
+        left: -9999px;
+    }
+
+    .photo-table tr {
+        border: 1px solid #cccccc;
+        margin-bottom: 14px;
+        background: #ffffff;
+    }
+
+    .photo-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        border: none;
+        border-bottom: 1px solid #eeeeee;
+        text-align: right;
+    }
+
+    .photo-table td:last-child {
+        border-bottom: none;
+    }
+
+    .photo-table td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: #444444;
+        text-align: left;
+        flex: 0 0 38%;
+    }
+
+    .photo-table td.empty-row {
+        display: block;
+        text-align: center;
+    }
+
+    .photo-table td.empty-row::before {
+        content: none;
+    }
+
+    .photo-table .photo-thumb {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+    }
+
+    .photo-full {
+        width: 100%;
+        max-height: 70vh;
+    }
+}
