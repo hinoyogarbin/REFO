@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../../includes/map_assets.php';
 /**
  * Field User - upload photos for an assigned area.
  *
@@ -46,7 +47,7 @@ $error = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$columnReady) {
         $error = 'Photo uploads for assigned areas are not set up yet. '
-            . 'Ask your administrator to run database_polygon_photos.sql.';
+            . 'Ask your administrator to run database.sql.';
     } else {
         $photoId = 0;
         try {
@@ -114,9 +115,8 @@ unset($_SESSION['flash']);
 
 $pageTitle = 'Upload Photos - ' . $polygon['polygon_name'];
 
-$extraHead = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" '
-    . 'integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">'
-    . '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=2">';
+$extraHead = leafletHeadTags()
+    . '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=3">';
 
 require_once __DIR__ . '/../../includes/header.php';
 ?>
@@ -137,7 +137,7 @@ require_once __DIR__ . '/../../includes/header.php';
 <?php if (!$columnReady): ?>
     <div class="alert alert-warning">
         Photo uploads for assigned areas are not set up yet. Ask your administrator
-        to run <code>database_polygon_photos.sql</code>.
+        to run <code>database.sql</code>.
     </div>
 <?php else: ?>
 
@@ -172,7 +172,7 @@ require_once __DIR__ . '/../../includes/header.php';
 
 <hr class="divider">
 
-<div class="dashboard-map-section">
+<div class="dashboard-map-section polygon-map-section">
     <h2>Tree Map</h2>
     <p class="dashboard-map-caption">
         Each marker is a tree photo you uploaded for this area. Tap a marker to see the photo.
@@ -234,12 +234,11 @@ require_once __DIR__ . '/../../includes/header.php';
 </div>
 
 <?php
-$extraScripts = '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" '
-    . 'integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>'
-    . '<script src="/REFO/assets/js/map_layers.js?v=3"></script><script src="/REFO/assets/js/polygon_map.js?v=1"></script>'
-    . '<script src="/REFO/assets/js/polygon_photo_map.js?v=1"></script>'
+$extraScripts = leafletScriptTags()
+    . '<script src="/REFO/assets/js/map_layers.js?v=6"></script><script src="/REFO/assets/js/polygon_map.js?v=7"></script>'
+    . '<script src="/REFO/assets/js/polygon_photo_map.js?v=3"></script>'
     . '<script>initPolygonPhotoMap("polygon-map", ' . jsonForScript($mapPayload) . ', '
-    . jsonForScript($photoMarkers) . ', { highlightId: ' . (int)$highlightId . ' });</script>';
+    . jsonForScript($photoMarkers) . ', { highlightId: ' . (int)$highlightId . ', locked: true, allowOverview: true });</script>';
 
 if ($columnReady) {
     $extraScripts .= '<script src="https://cdn.jsdelivr.net/npm/exif-js"></script><script>

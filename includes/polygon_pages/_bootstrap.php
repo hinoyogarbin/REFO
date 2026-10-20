@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../map_assets.php';
 /**
  * Common bootstrap for every CENRO Polygon Management page.
  *
@@ -26,8 +27,7 @@ $currentUserId = (int)($_SESSION['user_id'] ?? 0);
  */
 function polygonLeafletHead(): string
 {
-    return '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" '
-        . 'integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">';
+    return leafletHeadTags();
 }
 
 /**
@@ -35,9 +35,8 @@ function polygonLeafletHead(): string
  */
 function polygonLeafletScripts(): string
 {
-    return '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" '
-        . 'integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>'
-        . '<script src="/REFO/assets/js/map_layers.js?v=3"></script><script src="/REFO/assets/js/polygon_map.js?v=1"></script>';
+    return leafletScriptTags()
+        . '<script src="/REFO/assets/js/map_layers.js?v=6"></script><script src="/REFO/assets/js/polygon_map.js?v=7"></script>';
 }
 
 /**

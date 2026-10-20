@@ -1,0 +1,185 @@
+/*
+ * Seedling requests, batches and mortality pages (all three roles).
+ * Loaded on top of style.css (platform design tokens) and polygon_photos.css.
+ */
+
+/* ---------- Request status badges (shape comes from .status-badge) ---------- */
+
+.sr-status.sr-pending  { background: #FFF4E0; color: #8A5200; }
+.sr-status.sr-approved { background: #E3EEFB; color: #1F4E79; }
+.sr-status.sr-rejected { background: var(--color-danger-bg); color: var(--color-danger); }
+.sr-status.sr-released { background: var(--color-success-bg); color: var(--color-primary-dark); }
+
+/* ---------- Sub navigation (Admin / Manager) ---------- */
+
+.sr-subnav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0 0 20px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.sr-subnav a {
+    padding: 10px 16px;
+    color: var(--color-text);
+    text-decoration: none;
+    font-weight: 500;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    transition: background-color var(--duration-fast) var(--ease-standard);
+}
+
+.sr-subnav a:hover {
+    background-color: var(--color-primary-light);
+}
+
+.sr-subnav a.active {
+    border-bottom-color: var(--color-primary);
+    font-weight: 600;
+    color: var(--color-primary-dark);
+}
+
+/* ---------- Forms ---------- */
+
+.form.sr-form {
+    max-width: 520px;
+}
+
+.sr-form input[type="number"],
+.sr-form input[type="date"],
+.sr-form input[type="text"],
+.sr-form select,
+.sr-form textarea {
+    padding: 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+    font-family: inherit;
+    font-size: 16px;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.sr-form textarea {
+    resize: vertical;
+}
+
+.sr-inline-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: flex-end;
+}
+
+.sr-inline-fields > div {
+    display: flex;
+    flex-direction: column;
+    min-width: 160px;
+}
+
+/* Filter bars: fields sit on one row and wrap on small screens. */
+.sr-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin: 0 0 16px;
+}
+
+.sr-filters select,
+.sr-filters input[type="date"] {
+    padding: 9px 10px;
+    min-height: 40px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+    font-family: inherit;
+    font-size: 14px;
+}
+
+/* ---------- Batch groups ---------- */
+
+.sr-group {
+    margin: 0 0 24px;
+    border-radius: var(--radius);
+    box-shadow: var(--elevation-1);
+    background: var(--color-bg);
+    overflow: hidden;
+}
+
+.sr-group-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    padding: 12px 16px;
+    background: var(--color-primary-light);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.sr-group-head h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.sr-group-totals {
+    font-size: 13px;
+    color: var(--color-text-muted);
+}
+
+.sr-group .data-table {
+    margin: 0;
+}
+
+/* Mortality rate colouring: green low, amber medium, red high. */
+.sr-rate-low  { color: var(--color-primary); font-weight: 600; }
+.sr-rate-mid  { color: #8A5200; font-weight: 600; }
+.sr-rate-high { color: #B3261E; font-weight: 600; }
+
+.sr-note {
+    max-width: 320px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.sr-decision {
+    max-width: 520px;
+    margin: 0 0 18px;
+    padding: 16px 18px;
+    border-radius: var(--radius);
+    background: var(--color-surface);
+    box-shadow: var(--elevation-1);
+}
+
+.sr-decision h2 {
+    margin: 0 0 6px;
+    font-size: 16px;
+}
+
+.sr-small-photo {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    display: block;
+}
+
+@media (max-width: 700px) {
+    .sr-inline-fields > div {
+        min-width: 100%;
+    }
+
+    .sr-filters select,
+    .sr-filters input[type="date"],
+    .sr-filters .btn {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .sr-note {
+        max-width: 100%;
+    }
+}

@@ -8,7 +8,7 @@
  * file links the saved photo to the polygon and reads the links back.
  *
  * Requires the field_photos.polygon_id column
- * (see database_polygon_photos.sql).
+ * (see database.sql).
  */
 
 require_once __DIR__ . '/../config/database.php';

@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../../includes/map_assets.php';
 /**
  * Field User - view an assigned polygon boundary (read-only).
  *
@@ -43,9 +44,8 @@ $photoMarkers = getMappablePhotosForUser($currentUserId, [$polygonId]);
 
 $pageTitle = 'Assigned Area';
 
-$extraHead = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" '
-    . 'integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">'
-    . '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=2">';
+$extraHead = leafletHeadTags()
+    . '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=3">';
 
 require_once __DIR__ . '/../../includes/header.php';
 ?>
@@ -80,7 +80,7 @@ require_once __DIR__ . '/../../includes/header.php';
     </div>
 </div>
 
-<div class="dashboard-map-section">
+<div class="dashboard-map-section polygon-map-section">
     <h2>Area Boundary</h2>
     <p class="dashboard-map-caption">
         Official CENRO boundary. This is the geographic area for your field activities.
@@ -95,11 +95,10 @@ require_once __DIR__ . '/../../includes/header.php';
 </div>
 
 <?php
-$extraScripts = '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" '
-    . 'integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>'
-    . '<script src="/REFO/assets/js/map_layers.js?v=3"></script><script src="/REFO/assets/js/polygon_map.js?v=1"></script>'
-    . '<script src="/REFO/assets/js/polygon_photo_map.js?v=1"></script>'
-        . '<script>initPolygonPhotoMap("polygon-map", ' . jsonForScript($mapPayload) . ', ' . jsonForScript($photoMarkers) . ');</script>';
+$extraScripts = leafletScriptTags()
+    . '<script src="/REFO/assets/js/map_layers.js?v=6"></script><script src="/REFO/assets/js/polygon_map.js?v=7"></script>'
+    . '<script src="/REFO/assets/js/polygon_photo_map.js?v=3"></script>'
+        . '<script>initPolygonPhotoMap("polygon-map", ' . jsonForScript($mapPayload) . ', ' . jsonForScript($photoMarkers) . ', {locked: true});</script>';
 
 require_once __DIR__ . '/../../includes/page_end.php';
 ?>

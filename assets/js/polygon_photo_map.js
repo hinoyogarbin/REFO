@@ -81,9 +81,17 @@
             }
         });
 
+        // The polygon map redraws its boundaries when you move to another
+        // area or switch the base map; keep the photo markers above them
+        // so they stay clickable.
+        map.on('polygons:redrawn', function () {
+            group.eachLayer(function (layer) { layer.bringToFront(); });
+        });
+
         // The map stays centred on the polygon (set by initPolygonMap).
-        // Photos are never allowed to move or zoom it; pan the map to see
-        // a photo taken outside the boundary.
+        // Photos are never allowed to move or zoom it. On a locked map only
+        // the current area is shown; use "View all polygons" (where offered)
+        // to pan and see a photo taken outside the boundary.
 
         if (highlighted) {
             // Open the new photo's popup without panning the map away.

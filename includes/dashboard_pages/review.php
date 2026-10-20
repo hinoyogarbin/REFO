@@ -2,25 +2,40 @@
 /**
  * Shared body of the Admin and Manager dashboards.
  *
+ * Order: pending photo reviews, polygon overview, tree photo counts,
+ * seedling counts, the map (boundaries + photo markers), recent uploads.
+ *
  * Expects $role ('admin' or 'manager'), set by the dashboard page, and
  * leaves the map scripts in $extraScripts for includes/page_end.php.
  */
 
 require_once __DIR__ . '/../polygon_functions.php';
 require_once __DIR__ . '/../dashboard_functions.php';
+require_once __DIR__ . '/../seedling_functions.php';
 
 $photosBase   = "/REFO/{$role}/photos/";
+$seedlingsBase = "/REFO/{$role}/seedlings/";
 $pendingUrl   = $photosBase . 'index.php?status=pending';
 $polygonsUrl  = "/REFO/{$role}/polygons/index.php";
 
-$polygonStats = getDashboardPolygonStats();
+$seedlingsReady  = seedlingTablesExist();
+$seedlingCounts  = $seedlingsReady ? getSeedlingRequestCounts() : [];
+$seedlingTotals  = $seedlingsReady ? getSeedlingTotals() : ['released' => 0, 'dead' => 0, 'dead_30_days' => 0];
+
 $photoCounts  = getFieldPhotoStatusCounts();
 $recentPhotos = getRecentFieldPhotos(5);
 $areaLabels   = getPolygonLabelsForPhotos(array_column($recentPhotos, 'photo_id'));
 
 try {
-    $mapPayload = buildMapPayload(getPolygonsList());
+    $polygons   = getPolygonsList();
+    $analytics  = getPolygonDashboardAnalytics();
+    $mapPayload = buildMapPayload($polygons);
 } catch (Throwable $e) {
+    $analytics = [
+        'polygon_count' => 0, 'total_hectares' => 0.0, 'active_count' => 0,
+        'completed_count' => 0, 'inactive_count' => 0, 'assigned_count' => 0,
+        'source_file_count' => 0, 'formats' => [], 'recent_imports' => [],
+    ];
     $mapPayload = [];
 }
 $photoMarkers = getDashboardPhotoMarkers(null, $photosBase . 'view.php?id=');
@@ -42,47 +57,35 @@ $photoMarkers = getDashboardPhotoMarkers(null, $photosBase . 'view.php?id=');
     <a class="btn btn-primary" href="<?= h($pendingUrl) ?>">Review now</a>
 </div>
 
-<h2 class="dash-heading">CENRO Polygons</h2>
-<div class="stat-grid">
-    <a class="stat-card" href="<?= h($polygonsUrl) ?>">
-        <span class="stat-number"><?= (int)$polygonStats['total'] ?></span>
-        <span class="stat-label">Total polygons</span>
-    </a>
-    <a class="stat-card" href="<?= h($polygonsUrl) ?>">
-        <span class="stat-number"><?= (int)$polygonStats['assigned'] ?></span>
-        <span class="stat-label">Assigned to a field user</span>
-    </a>
-    <a class="stat-card" href="<?= h($polygonsUrl) ?>">
-        <span class="stat-number"><?= (int)$polygonStats['unassigned'] ?></span>
-        <span class="stat-label">Unassigned</span>
-    </a>
-</div>
+<?php
+// KPI cards shown inside the CENRO data overview.
+$overviewKpiGroups = [[
+    'title' => 'Tree photos',
+    'cards' => [
+        ['label' => 'Pending',   'value' => (int)$photoCounts['pending'],   'href' => $photosBase . 'index.php?status=pending',   'class' => 'stat-pending'],
+        ['label' => 'Confirmed', 'value' => (int)$photoCounts['confirmed'], 'href' => $photosBase . 'index.php?status=confirmed', 'class' => 'stat-confirmed'],
+        ['label' => 'Rejected',  'value' => (int)$photoCounts['rejected'],  'href' => $photosBase . 'index.php?status=rejected',  'class' => 'stat-rejected'],
+    ],
+]];
+if ($seedlingsReady) {
+    $overviewKpiGroups[] = [
+        'title' => 'Seedlings',
+        'cards' => [
+            ['label' => 'Pending requests',            'value' => (int)$seedlingCounts['pending'],  'href' => $seedlingsBase . 'index.php?status=pending',  'class' => 'stat-pending'],
+            ['label' => 'Approved, awaiting release',  'value' => (int)$seedlingCounts['approved'], 'href' => $seedlingsBase . 'index.php?status=approved', 'class' => ''],
+            ['label' => 'Seedlings released',          'value' => (int)$seedlingTotals['released'], 'href' => $seedlingsBase . 'batches.php',               'class' => ''],
+            ['label' => 'Dead, last 30 days',          'value' => (int)$seedlingTotals['dead_30_days'], 'href' => $seedlingsBase . 'mortality.php',         'class' => 'stat-rejected'],
+            ['label' => 'Overall mortality rate',      'value' => formatSeedlingRate((int)$seedlingTotals['dead'], (int)$seedlingTotals['released']), 'href' => $seedlingsBase . 'mortality.php', 'class' => ''],
+        ],
+    ];
+}
 
-<h2 class="dash-heading">Tree Photos</h2>
-<div class="stat-grid">
-    <a class="stat-card stat-pending" href="<?= h($photosBase) ?>index.php?status=pending">
-        <span class="stat-number"><?= (int)$photoCounts['pending'] ?></span>
-        <span class="stat-label">Pending</span>
-    </a>
-    <a class="stat-card stat-confirmed" href="<?= h($photosBase) ?>index.php?status=confirmed">
-        <span class="stat-number"><?= (int)$photoCounts['confirmed'] ?></span>
-        <span class="stat-label">Confirmed</span>
-    </a>
-    <a class="stat-card stat-rejected" href="<?= h($photosBase) ?>index.php?status=rejected">
-        <span class="stat-number"><?= (int)$photoCounts['rejected'] ?></span>
-        <span class="stat-label">Rejected</span>
-    </a>
-</div>
+// Polygon overview: polygon totals, mapped hectares, status bars, imported files.
+$dashboardSkipMap = true;
+require __DIR__ . '/../dashboard_polygon_panel.php';
+?>
 
-<div class="dashboard-map-section">
-    <h2>Reforestation Areas</h2>
-    <p class="dashboard-map-caption">
-        All CENRO polygon boundaries with the tree photos uploaded by field users.
-        Tap a marker to see the photo.
-    </p>
-    <div id="dashboard-map" class="dashboard-map"></div>
-    <?= polygonPhotoLegendHtml() ?>
-</div>
+<?php require __DIR__ . '/../dashboard_map_section.php'; ?>
 
 <h2 class="dash-heading">Recent Uploads</h2>
 <table class="data-table photo-table">
@@ -124,4 +127,4 @@ $photoMarkers = getDashboardPhotoMarkers(null, $photosBase . 'view.php?id=');
 </div>
 
 <?php
-$extraScripts = dashboardMapScripts($mapPayload, $photoMarkers);
+$extraScripts = dashboardMapScripts($mapPayload, $photoMarkers, ['locked' => true, 'allowOverview' => true]);
