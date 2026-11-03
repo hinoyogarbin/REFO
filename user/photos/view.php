@@ -20,7 +20,7 @@ if (!$photo || (int)$photo['user_id'] !== (int)$_SESSION['user_id']) {
 $hasLocation = $photo['exif_latitude'] !== null;
 
 $extraHead = leafletHeadTags()
-    . '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=3">';
+    . '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=6">';
 
 $pageTitle = 'Field Photo Details';
 require_once __DIR__ . '/../../includes/header.php';

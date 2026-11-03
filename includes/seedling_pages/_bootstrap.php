@@ -24,7 +24,7 @@ $currentUserId = (int)($_SESSION['user_id'] ?? 0);
 /** Base URL of this role's seedling pages, e.g. /REFO/admin/seedlings/ */
 $seedlingBase = '/REFO/' . $currentRole . '/seedlings/';
 
-$seedlingHead = '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=3">'
+$seedlingHead = '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=6">'
     . '<link rel="stylesheet" href="/REFO/assets/css/dashboard.css?v=2">'
     . '<link rel="stylesheet" href="/REFO/assets/css/seedlings.css?v=2">';
 

@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $pageTitle = 'Request Seedlings';
-$extraHead = '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=3">'
+$extraHead = '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=6">'
     . '<link rel="stylesheet" href="/REFO/assets/css/seedlings.css?v=2">';
 
 require_once __DIR__ . '/../../includes/header.php';

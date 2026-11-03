@@ -1,26 +1,6 @@
--- ============================================================
--- Reforestation Management Platform (CENRO)
--- Unified database schema  -  run this ONE file on a fresh install
---
---   mysql -u root < database.sql          (or import it in phpMyAdmin)
---
--- Replaces the old split files:
---   database.sql (old), database_polygons.sql,
---   database_polygon_photos.sql, database_seedlings.sql,
---   database_api_migration.sql
---
--- Safe to re-run: every table uses IF NOT EXISTS and the seed rows
--- are only inserted when missing. It never drops or alters data.
---
--- Table order matters because of foreign keys:
---   users -> activity_logs, api_tokens, projects -> polygons
---   -> field_photos -> seedling_requests -> seedling_batches
---   -> seedling_mortality_reports
--- ============================================================
 
-CREATE DATABASE IF NOT EXISTS reforestation_db
-    CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE reforestation_db;
+
+
 
 -- ============================================================
 -- 1. Users

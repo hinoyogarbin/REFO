@@ -11,7 +11,7 @@ $photos = getFieldPhotosByUser((int)$_SESSION['user_id']);
 $flash = $_SESSION['flash'] ?? null;
 unset($_SESSION['flash']);
 
-$extraHead = '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=3">';
+$extraHead = '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=6">';
 $pageTitle = 'Field Photos';
 require_once __DIR__ . '/../../includes/header.php';
 ?>

@@ -312,18 +312,6 @@ select:focus-visible,
     padding: 20px 16px 40px 16px;
 }
 
-.site-footer {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px 20px;
-    padding: 16px max(16px, calc((100% - 1360px) / 2));
-    border-top: 1px solid var(--color-border);
-    background-color: var(--color-bg);
-    color: var(--color-text-muted);
-    font-size: 12px;
-}
-
 .dashboard-analytics {
     margin: 22px 0 30px;
 }
@@ -510,11 +498,6 @@ select:focus-visible,
 @media (max-width: 700px) {
     .dashboard-analytics-grid {
         grid-template-columns: 1fr;
-    }
-
-    .site-footer {
-        padding-right: 16px;
-        padding-left: 16px;
     }
 }
 

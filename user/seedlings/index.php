@@ -34,7 +34,7 @@ if ($tablesReady) {
 }
 
 $pageTitle = 'My Seedlings';
-$extraHead = '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=3">'
+$extraHead = '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=6">'
     . '<link rel="stylesheet" href="/REFO/assets/css/dashboard.css?v=2">'
     . '<link rel="stylesheet" href="/REFO/assets/css/seedlings.css?v=2">';
 

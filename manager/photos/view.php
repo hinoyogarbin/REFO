@@ -21,7 +21,7 @@ $hasLocation = $photo['exif_latitude'] !== null;
 $areaLabel = getPolygonLabelsForPhotos([$photoId])[$photoId] ?? null;
 
 $extraHead = leafletHeadTags()
-    . '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=3">';
+    . '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=6">';
 
 $pageTitle = 'Field Photo Review';
 require_once __DIR__ . '/../../includes/header.php';

@@ -125,6 +125,9 @@ function photoRowToMarker(array $p, string $viewUrlBase): array
         'thumb'      => PHOTO_UPLOAD_URL . $p['file_name'],
         'taken'      => $p['exif_datetime'] ? date('F j, Y g:i A', strtotime($p['exif_datetime'])) : '',
         'uploaded'   => date('F j, Y g:i A', strtotime($p['uploaded_at'])),
+        // Day the calendar filter files the photo under: taken date,
+        // else upload date (YYYY-MM-DD).
+        'date'       => date('Y-m-d', strtotime($p['exif_datetime'] ?: $p['uploaded_at'])),
         'status'     => $p['status'],
         'label'      => ucfirst($p['status']),
         'url'        => $viewUrlBase . (int)$p['photo_id'],

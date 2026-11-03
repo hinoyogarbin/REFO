@@ -45,7 +45,7 @@ $photoMarkers = getMappablePhotosForUser($currentUserId, [$polygonId]);
 $pageTitle = 'Assigned Area';
 
 $extraHead = leafletHeadTags()
-    . '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=3">';
+    . '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=6">';
 
 require_once __DIR__ . '/../../includes/header.php';
 ?>
@@ -97,7 +97,7 @@ require_once __DIR__ . '/../../includes/header.php';
 <?php
 $extraScripts = leafletScriptTags()
     . '<script src="/REFO/assets/js/map_layers.js?v=6"></script><script src="/REFO/assets/js/polygon_map.js?v=7"></script>'
-    . '<script src="/REFO/assets/js/polygon_photo_map.js?v=3"></script>'
+    . '<script src="/REFO/assets/js/polygon_photo_map.js?v=6"></script>'
         . '<script>initPolygonPhotoMap("polygon-map", ' . jsonForScript($mapPayload) . ', ' . jsonForScript($photoMarkers) . ', {locked: true});</script>';
 
 require_once __DIR__ . '/../../includes/page_end.php';

@@ -91,7 +91,6 @@ if (!empty($_SESSION['user_id'])) {
 
     <?php if ($fullName): ?>
         <div class="topbar-right">
-            <span class="topbar-user"><?= h($fullName) ?> (<?= h(ucfirst($role)) ?>)</span>
             <a class="topbar-logout" href="/REFO/auth/logout.php">Logout</a>
         </div>
     <?php endif; ?>

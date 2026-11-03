@@ -203,7 +203,7 @@ function dashboardMapScripts(array $mapPayload, array $photoMarkers, array $mapO
     return leafletScriptTags()
         . '<script src="/REFO/assets/js/map_layers.js?v=6"></script>'
         . '<script src="/REFO/assets/js/polygon_map.js?v=7"></script>'
-        . '<script src="/REFO/assets/js/polygon_photo_map.js?v=3"></script>'
+        . '<script src="/REFO/assets/js/polygon_photo_map.js?v=6"></script>'
         . '<script>initPolygonPhotoMap("dashboard-map", ' . jsonForScript($mapPayload)
         . ', ' . jsonForScript($photoMarkers) . ', ' . jsonForScript($mapOptions) . ');</script>';
 }
@@ -214,6 +214,6 @@ function dashboardMapScripts(array $mapPayload, array $photoMarkers, array $mapO
 function dashboardHead(): string
 {
     return leafletHeadTags()
-        . '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=3">'
+        . '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=6">'
         . '<link rel="stylesheet" href="/REFO/assets/css/dashboard.css?v=2">';
 }

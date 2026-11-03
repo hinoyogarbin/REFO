@@ -79,7 +79,7 @@ function leafletMapScripts(bool $withPhotoMarkers = false, bool $withPolygonMap 
         $html .= '<script src="/REFO/assets/js/polygon_map.js?v=7"></script>';
     }
     if ($withPhotoMarkers) {
-        $html .= '<script src="/REFO/assets/js/polygon_photo_map.js?v=3"></script>';
+        $html .= '<script src="/REFO/assets/js/polygon_photo_map.js?v=6"></script>';
     }
 
     return $html;
