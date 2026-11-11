@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../../includes/map_assets.php';
 require_once __DIR__ . '/../../includes/auth_check.php';
 requireLogin();
 require_once __DIR__ . '/../../includes/role_check.php';
@@ -19,9 +20,8 @@ if (!$photo) {
 $hasLocation = $photo['exif_latitude'] !== null;
 $areaLabel = getPolygonLabelsForPhotos([$photoId])[$photoId] ?? null;
 
-$extraHead = '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" '
-    . 'integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">'
-    . '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=2">';
+$extraHead = leafletHeadTags()
+    . '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=6">';
 
 $pageTitle = 'Field Photo Review';
 require_once __DIR__ . '/../../includes/header.php';
@@ -116,9 +116,8 @@ if ($hasLocation) {
     $mapLng = $photo['exif_longitude'];
     $photoUrl = PHOTO_UPLOAD_URL . $photo['file_name'];
 
-    $extraScripts = '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" '
-        . 'integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>'
-        . '<script src="/REFO/assets/js/map_layers.js?v=3"></script>'
+    $extraScripts = leafletScriptTags()
+        . '<script src="/REFO/assets/js/map_layers.js?v=6"></script>'
         . '<script>
             var map = L.map("photo-location-map").setView([' . (float)$mapLat . ', ' . (float)$mapLng . '], 17);
             addMapLayers(map);

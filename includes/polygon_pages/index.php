@@ -28,9 +28,17 @@ require_once __DIR__ . '/../header.php';
 
 <div class="toolbar">
     <a class="btn btn-primary" href="import.php">Import Polygon</a>
+    <button type="button" class="btn" data-polygon-export
+            data-export-url="export.php<?= h(($q = http_build_query(array_filter(
+                ['search' => $search, 'status' => $statusFilter, 'project' => $projectFilter],
+                function ($v) { return $v !== '' && $v !== null; }
+            ))) !== '' ? '?' . $q : '') ?>"
+            data-stamp="<?= h(date('Ymd_His')) ?>"
+            title="Save the listed polygons as .shp, .shx, .dbf, .prj, .xlsx and .sql files">Export<?= ($search !== '' || $statusFilter !== '' || $projectFilter !== null) ? ' Filtered' : ' All' ?></button>
 
     <form action="index.php" method="get" class="filter-form">
-        <input type="text" name="search" placeholder="Search code, name or location"
+        <input type="search" name="search" placeholder="Search code, name or location"
+               aria-label="Search polygon code, name, or location"
                value="<?= h($search) ?>">
 
         <select name="project">
@@ -53,9 +61,13 @@ require_once __DIR__ . '/../header.php';
         </select>
 
         <button type="submit" class="btn">Filter</button>
+        <?php if ($search !== '' || $statusFilter !== '' || $projectFilter !== null): ?>
+            <a class="btn" href="index.php">Clear filters</a>
+        <?php endif; ?>
     </form>
 </div>
 
+<div class="table-scroll">
 <table class="data-table">
     <thead>
     <tr>
@@ -107,18 +119,23 @@ require_once __DIR__ . '/../header.php';
     <?php endif; ?>
     </tbody>
 </table>
+</div>
 
-<div class="dashboard-map-section">
-    <h2>Polygon Boundaries</h2>
+<section class="dashboard-map-section polygon-map-section" aria-labelledby="polygon-map-heading">
+    <h2 id="polygon-map-heading">Polygon Boundaries</h2>
     <p class="dashboard-map-caption">
-        Official CENRO boundaries currently matching the filters above. Click a polygon for details.
+        <?= count($polygons) ?> CENRO polygon<?= count($polygons) === 1 ? '' : 's' ?> match the current filters.
+        Starts focused on one polygon with the surrounding map darkened.
+        Use the controls to focus another polygon or switch to the all-polygons overview.
     </p>
     <div id="polygon-map" class="dashboard-map"></div>
-</div>
+</section>
 
 <?php
 $extraScripts = polygonLeafletScripts()
-    . '<script>initPolygonMap("polygon-map", ' . jsonForScript($mapPayload) . ');</script>';
+    . '<script>initPolygonMap("polygon-map", ' . jsonForScript($mapPayload) . ', '
+    . '{locked: true, allowOverview: true});</script>'
+    . '<script src="/REFO/assets/js/polygon_export.js?v=1"></script>';
 
 require_once __DIR__ . '/../page_end.php';
 ?>

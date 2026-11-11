@@ -1,22 +1,84 @@
 /**
  * Shared Leaflet map helper for CENRO polygons.
  *
- * Draws the official imported boundaries on the existing Leaflet map
- * setup used elsewhere in the platform. Polygons arrive already in
- * Leaflet's [lat, lng] order from buildMapPayload() in PHP, so no
- * coordinate juggling happens here.
+ * Polygons arrive already in WGS 84 / Leaflet [lat, lng] order from
+ * buildMapPayload() in PHP (the EPSG:32651 -> EPSG:4326 conversion happens
+ * at import time in includes/geo/proj.php), so no coordinate juggling
+ * happens here.
+ *
+ * LOCKED MODE
+ * Restricted maps show only ONE polygon at a time:
+ *   - it opens fitted to the current polygon;
+ *   - the fitted zoom is the minimum zoom (cannot zoom out);
+ *   - map dragging and keyboard panning are disabled;
+ *   - imagery outside the polygon is masked;
+ *   - Previous / Next buttons (and a selector) move to another polygon.
+ *
+ * Options: { preview: bool, locked: bool, allowOverview: bool, interactive: bool }
+ *   preview  - admin import preview: all polygons shown, not locked, so the
+ *              operator can verify the placement against surrounding roads.
+ *   locked   - restrict the view to one polygon (default: on unless preview).
+ *              Set false for a normal map that shows every boundary and
+ *              supports unrestricted pan and zoom.
+ *   allowOverview - adds a "View all polygons" toggle to the navigation bar.
+ *
+ * Add-ons can listen for the map's 'polygons:redrawn' event to restack
+ * their own layers above the boundaries (see polygon_photo_map.js).
  */
 (function (global) {
     'use strict';
 
-    var DEFAULT_CENTER = [8.365, 124.866]; // Northern Bukidnon State College
-    var DEFAULT_ZOOM = 15;
+    // Used only when there is no polygon at all; no boundary data is implied.
+    var EMPTY_CENTER = [8.37, 124.86];
+    var EMPTY_ZOOM = 11;
 
+    var MAX_ZOOM = 20;      // map zoom ceiling (tiles are over-zoomed past native)
+    var FIT_MAX_ZOOM = 18;  // never zoom a fit closer than this (imagery runs out)
+    var FIT_PADDING = 16;   // px on every side when fitting a polygon
+    var BOUNDS_PAD = 0.03;  // fraction of polygon size allowed as pan margin
+
+    var BASEMAPS = {
+        satellite: {
+            label: 'Satellite',
+            url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            options: {
+                maxZoom: MAX_ZOOM,
+                maxNativeZoom: 17,
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, '
+                    + 'and the GIS User Community'
+            }
+        },
+        street: {
+            label: 'Street map',
+            url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            options: {
+                maxZoom: MAX_ZOOM,
+                maxNativeZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }
+        }
+    };
+
+    // Boundary colours chosen to stay visible on each basemap.
     var STYLES = {
-        Active:    { color: '#1a5c2e', weight: 2, fillColor: '#1a5c2e', fillOpacity: 0.20 },
-        Inactive:  { color: '#777777', weight: 2, fillColor: '#777777', fillOpacity: 0.15 },
-        Completed: { color: '#1f4e79', weight: 2, fillColor: '#1f4e79', fillOpacity: 0.18 },
-        Preview:   { color: '#a1601a', weight: 2, fillColor: '#a1601a', fillOpacity: 0.20, dashArray: '5,4' }
+        satellite: {
+            Active: { color: '#fff176', weight: 3, fillColor: '#2e8b57', fillOpacity: 0.12 },
+            Inactive: { color: '#d0d0d0', weight: 3, fillColor: '#999999', fillOpacity: 0.12 },
+            Completed: { color: '#81d4fa', weight: 3, fillColor: '#1f78b4', fillOpacity: 0.14 }
+        },
+        street: {
+            Active: { color: '#1a5c2e', weight: 3, fillColor: '#1a5c2e', fillOpacity: 0.20 },
+            Inactive: { color: '#777777', weight: 3, fillColor: '#777777', fillOpacity: 0.15 },
+            Completed: { color: '#1f4e79', weight: 3, fillColor: '#1f4e79', fillOpacity: 0.18 }
+        },
+        preview: { color: '#a1601a', weight: 3, fillColor: '#a1601a', fillOpacity: 0.20, dashArray: '6,5' }
+    };
+
+    var MASK_STYLE = {
+        stroke: false,
+        fillColor: '#0d1f14',
+        fillOpacity: 0.9,
+        interactive: false
     };
 
     function escapeHtml(value) {
@@ -31,12 +93,14 @@
             .replace(/'/g, '&#039;');
     }
 
-    function buildPopup(polygon) {
+    function buildPopup(polygon, label) {
         var rows = [
+            ['Area', label],
             ['Polygon', polygon.code],
             ['Name', polygon.name],
             ['Project', polygon.project],
-            ['Area', polygon.area],
+            ['Location', polygon.location],
+            ['Size', polygon.area],
             ['Steward', polygon.steward],
             ['Status', polygon.status]
         ];
@@ -49,102 +113,324 @@
             html += '<div><strong>' + escapeHtml(row[0]) + ':</strong> '
                 + escapeHtml(row[1]) + '</div>';
         });
-        html += '</div>';
-
-        return html;
+        return html + '</div>';
     }
 
-    /**
-     * Renders polygons on a map.
-     *
-     * @param {string} elementId  Map container id.
-     * @param {Array}  polygons   Payload from buildMapPayload().
-     * @param {Object} options    { preview: bool, interactive: bool }
-     */
+    /** Outer ring of every part of a polygon record. */
+    function outerRings(polygon) {
+        return (polygon.rings || [])
+            .map(function (part) { return part[0]; })
+            .filter(function (ring) { return ring && ring.length >= 3; });
+    }
+
+    function polygonBounds(polygon) {
+        var all = [];
+        outerRings(polygon).forEach(function (ring) { all = all.concat(ring); });
+        return all.length ? L.latLngBounds(all) : null;
+    }
+
+    function labelFor(polygon, index, total) {
+        if (polygon.label) {
+            return polygon.label;
+        }
+        return polygon.code || 'Area ' + (index + 1);
+    }
+
+    function addBaseLayers(map) {
+        var bases;
+
+        // Shared Street / Satellite switcher (assets/js/map_layers.js): also
+        // offers the place-names overlay and remembers the person's choice
+        // across every map in the platform. Satellite is the first-visit default.
+        var shared = typeof global.addMapLayers === 'function'
+            ? global.addMapLayers(map, { defaultBase: 'satellite' })
+            : null;
+
+        if (shared) {
+            bases = { satellite: shared.satellite, street: shared.street };
+        } else {
+            // map_layers.js not loaded: plain built-in switcher.
+            var layers = {};
+            Object.keys(BASEMAPS).forEach(function (key) {
+                var def = BASEMAPS[key];
+                layers[def.label] = L.tileLayer(def.url, def.options);
+            });
+            layers[BASEMAPS.satellite.label].addTo(map);
+            L.control.layers(layers, null, { position: 'topright', collapsed: true }).addTo(map);
+            bases = { satellite: layers[BASEMAPS.satellite.label], street: layers[BASEMAPS.street.label] };
+        }
+
+        bases.isSatellite = function () { return map.hasLayer(bases.satellite); };
+
+        L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(map);
+        L.control.zoom({ position: 'topleft' }).addTo(map);
+
+        return bases;
+    }
+
+    function buildNavBar(container, allowOverview) {
+        var bar = document.createElement('div');
+        bar.className = 'polygon-nav';
+        bar.innerHTML =
+            '<button type="button" class="btn polygon-nav-btn" data-nav="prev" aria-label="Previous area">&#8249; Previous</button>'
+            + '<div class="polygon-nav-center">'
+            + '<select class="polygon-nav-select" aria-label="Go to area"></select>'
+            + '<span class="polygon-nav-count"></span>'
+            + '<button type="button" class="btn polygon-nav-reset" data-nav="reset">Reset view</button>'
+            + (allowOverview
+                ? '<button type="button" class="btn polygon-nav-mode" data-nav="mode"></button>'
+                : '')
+            + '</div>'
+            + '<button type="button" class="btn polygon-nav-btn" data-nav="next" aria-label="Next area">Next &#8250;</button>';
+
+        container.parentNode.insertBefore(bar, container);
+        return bar;
+    }
+
     function initPolygonMap(elementId, polygons, options) {
         var container = document.getElementById(elementId);
-        if (!container || typeof L === 'undefined') {
+        if (!container) {
+            return null;
+        }
+        if (typeof L === 'undefined') {
+            // map_layers.js shows the message too; this covers pages that
+            // load polygon_map.js without it.
+            if (typeof global.showMapNotice === 'function') {
+                global.showMapNotice(container,
+                    'The map could not be loaded because the map library was blocked '
+                    + 'or unreachable. Check your internet connection and refresh the page.');
+            }
             return null;
         }
 
         options = options || {};
-        polygons = polygons || [];
+        polygons = (polygons || []).filter(function (p) { return polygonBounds(p) !== null; });
+
+        var locked = options.locked !== undefined ? !!options.locked : !options.preview;
+        var allowOverview = !!options.allowOverview || !!options.preview;
+        container.classList.toggle('polygon-map-locked', locked);
 
         var map = L.map(elementId, {
-            scrollWheelZoom: options.interactive !== false
-        }).setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+            zoomControl: false,
+            scrollWheelZoom: options.interactive !== false,
+            zoomSnap: 0.25,
+            zoomDelta: 0.5,
+            maxZoom: MAX_ZOOM,
+            maxBoundsViscosity: 1.0
+        });
 
-        // Street / Satellite switcher (assets/js/map_layers.js). Falls back to
-        // the plain street map if that file was not loaded.
-        var baseLayers = typeof global.addMapLayers === 'function'
-            ? global.addMapLayers(map)
-            : null;
+        var bases = addBaseLayers(map);
+        var currentBase = bases.isSatellite() ? 'satellite' : 'street';
 
-        if (!baseLayers) {
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(map);
-        }
-
+        // ---- Nothing to show -------------------------------------------------
         if (!polygons.length) {
-            L.marker(DEFAULT_CENTER).addTo(map)
-                .bindPopup('Northern Bukidnon State College');
+            map.setView(EMPTY_CENTER, EMPTY_ZOOM);
+            var note = document.createElement('div');
+            note.className = 'map-empty-note';
+            note.textContent = 'No CENRO polygons available to display.';
+            container.appendChild(note);
             return map;
         }
 
+        // A map needs a view before vector layers can be added to it. Start on
+        // the first polygon so no other area is ever requested or shown.
+        map.fitBounds(polygonBounds(polygons[0]), { animate: false });
+
+        var total = polygons.length;
+        var labels = polygons.map(function (p, i) { return labelFor(p, i, total); });
         var layerGroup = L.featureGroup().addTo(map);
-        var drawn = [];
+        var maskLayer = null;
+        var activeIndex = 0;
 
-        polygons.forEach(function (polygon) {
-            if (!polygon.rings || !polygon.rings.length) {
-                return;
+        function styleFor(polygon) {
+            if (options.preview) {
+                return STYLES.preview;
             }
+            var set = STYLES[currentBase];
+            return set[polygon.status] || set.Active;
+        }
 
-            var style = options.preview
-                ? STYLES.Preview
-                : (STYLES[polygon.status] || STYLES.Active);
+        function drawPolygon(index) {
+            var polygon = polygons[index];
+            var style = styleFor(polygon);
 
-            // Each entry of rings is one polygon: [outerRing, hole, hole...].
             polygon.rings.forEach(function (rings) {
                 var layer = L.polygon(rings, style);
-                layer.bindPopup(buildPopup(polygon));
+                layer.bindPopup(buildPopup(polygon, labels[index]));
+                layer.bindTooltip(labels[index], {
+                    permanent: true,
+                    direction: 'center',
+                    className: 'area-label'
+                });
                 layer.addTo(layerGroup);
-                drawn.push({ layer: layer, style: style });
             });
+        }
+
+        function drawMask(index) {
+            if (maskLayer) {
+                map.removeLayer(maskLayer);
+                maskLayer = null;
+            }
+            var world = [[-85, -180], [-85, 180], [85, 180], [85, -180]];
+            var rings = [world];
+            polygons[index].rings.forEach(function (part) {
+                part.forEach(function (ring) {
+                    if (ring && ring.length >= 3) {
+                        rings.push(ring);
+                    }
+                });
+            });
+            maskLayer = L.polygon(rings, MASK_STYLE).addTo(map);
+            maskLayer.bringToBack();
+        }
+
+        function redraw() {
+            layerGroup.clearLayers();
+            if (locked) {
+                drawPolygon(activeIndex);
+            } else {
+                polygons.forEach(function (p, i) { drawPolygon(i); });
+            }
+            layerGroup.eachLayer(function (l) { l.bringToFront(); });
+            // Lets add-ons (e.g. photo markers) put themselves back on top.
+            map.fire('polygons:redrawn');
+        }
+
+        // ---- Lock / fit ------------------------------------------------------
+        function lockTo(bounds) {
+            // Release the previous lock so fitBounds can move freely.
+            map.setMinZoom(0);
+            map.setMaxBounds(null);
+
+            map.invalidateSize();
+            map.fitBounds(bounds, { padding: [FIT_PADDING, FIT_PADDING], maxZoom: FIT_MAX_ZOOM, animate: false });
+
+            // The fitted zoom becomes the floor, and focus mode cannot pan.
+            map.setMinZoom(map.getZoom());
+            map.setMaxBounds(bounds.pad(BOUNDS_PAD));
+            map.dragging.disable();
+            map.boxZoom.disable();
+            map.touchZoom.disable();
+            map.keyboard.disable();
+        }
+
+        function show(index, reset) {
+            activeIndex = index;
+            container.classList.toggle('polygon-map-locked', locked);
+
+            if (locked) {
+                drawMask(index);
+                redraw();
+                lockTo(polygonBounds(polygons[index]));
+                updateNav();
+            } else {
+                map.setMinZoom(0);
+                map.setMaxBounds(null);
+                map.dragging.enable();
+                map.boxZoom.enable();
+                map.touchZoom.enable();
+                map.keyboard.enable();
+                if (maskLayer) {
+                    map.removeLayer(maskLayer);
+                    maskLayer = null;
+                }
+                redraw();
+                var bounds = reset ? layerGroup.getBounds() : polygonBounds(polygons[index]);
+                if (bounds.isValid()) {
+                    map.fitBounds(bounds, { padding: [20, 20], maxZoom: 18, animate: false });
+                }
+                updateNav();
+            }
+        }
+
+        // ---- Navigation ------------------------------------------------------
+        var bar = null;
+        var select = null;
+        var counter = null;
+        var modeButton = null;
+
+        function updateNav() {
+            if (!bar) {
+                return;
+            }
+            select.value = String(activeIndex);
+            counter.textContent = (activeIndex + 1) + ' of ' + total;
+            counter.setAttribute('aria-live', 'polite');
+            bar.querySelector('[data-nav="prev"]').disabled = activeIndex <= 0;
+            bar.querySelector('[data-nav="next"]').disabled = activeIndex >= total - 1;
+            if (modeButton) {
+                modeButton.textContent = locked ? 'View all polygons' : 'Focus selected polygon';
+                modeButton.setAttribute('aria-label', modeButton.textContent);
+            }
+        }
+
+        if (total > 0) {
+            bar = buildNavBar(container, allowOverview);
+            select = bar.querySelector('.polygon-nav-select');
+            counter = bar.querySelector('.polygon-nav-count');
+            modeButton = bar.querySelector('.polygon-nav-mode');
+
+            polygons.forEach(function (p, i) {
+                var opt = document.createElement('option');
+                opt.value = String(i);
+                opt.textContent = labels[i] + (p.name ? ' - ' + p.name : '');
+                select.appendChild(opt);
+            });
+
+            bar.addEventListener('click', function (event) {
+                var btn = event.target.closest('[data-nav]');
+                if (!btn || btn.disabled) {
+                    return;
+                }
+                map.closePopup();
+                var direction = btn.getAttribute('data-nav');
+                if (direction === 'reset') {
+                    show(activeIndex, true);
+                } else if (direction === 'mode') {
+                    locked = !locked;
+                    show(activeIndex);
+                } else {
+                    show(activeIndex + (direction === 'next' ? 1 : -1));
+                }
+            });
+
+            select.addEventListener('change', function () {
+                map.closePopup();
+                show(parseInt(select.value, 10) || 0);
+            });
+        }
+
+        // Boundary colours follow the active basemap.
+        map.on('baselayerchange', function (e) {
+            currentBase = (e.layer === bases.street) ? 'street' : 'satellite';
+            if (!options.preview) {
+                redraw();
+            }
         });
 
-        // The dark boundary colours disappear on satellite imagery, so use a
-        // bright outline there and the normal colours on the street map.
-        function applyBaseStyle() {
-            var onSatellite = !!(baseLayers && baseLayers.isSatellite());
-            drawn.forEach(function (item) {
-                item.layer.setStyle(onSatellite
-                    ? L.Util.extend({}, item.style, {
-                        color: '#ffeb3b',
-                        weight: 3,
-                        fillColor: '#ffeb3b',
-                        fillOpacity: 0.12
-                    })
-                    : item.style);
-            });
-        }
+        // Re-fit after the container changes size (rotation, window resize).
+        var resizeTimer = null;
+        window.addEventListener('resize', function () {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function () {
+                if (locked) {
+                    lockTo(polygonBounds(polygons[activeIndex]));
+                } else {
+                    map.invalidateSize();
+                }
+            }, 200);
+        });
 
-        if (baseLayers) {
-            applyBaseStyle();
-            map.on('baselayerchange', applyBaseStyle);
-        }
+        show(0, !locked);
 
-        // Fit the view to the imported boundary rather than a guessed centre.
-        try {
-            var bounds = layerGroup.getBounds();
-            if (bounds && bounds.isValid()) {
-                map.fitBounds(bounds, { padding: [20, 20], maxZoom: 18 });
+        // If the page layout settles after the map was built, re-fit to the real size.
+        window.addEventListener('load', function () {
+            if (locked) {
+                lockTo(polygonBounds(polygons[activeIndex]));
+            } else {
+                map.invalidateSize();
             }
-        } catch (e) {
-            map.setView(DEFAULT_CENTER, DEFAULT_ZOOM);
-        }
-
+        });
         return map;
     }
 

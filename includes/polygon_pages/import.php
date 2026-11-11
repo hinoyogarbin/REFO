@@ -470,6 +470,8 @@ require_once __DIR__ . '/../header.php';
             or the automatic detection gets it wrong.
         </p>
 
+        
+
         <div class="form-actions">
             <button type="submit" class="btn btn-primary">Upload and Preview</button>
             <a class="btn" href="index.php">Cancel</a>

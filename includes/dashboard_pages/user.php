@@ -7,6 +7,7 @@
 
 require_once __DIR__ . '/../polygon_functions.php';
 require_once __DIR__ . '/../dashboard_functions.php';
+require_once __DIR__ . '/../seedling_functions.php';
 
 $currentUserId = (int)($_SESSION['user_id'] ?? 0);
 
@@ -16,10 +17,25 @@ try {
     $myPolygons = [];
 }
 
+$seedlingsReady = seedlingTablesExist();
+$seedlingCounts = $seedlingsReady ? getSeedlingRequestCounts($currentUserId) : [];
+$seedlingTotals = $seedlingsReady ? getSeedlingTotals($currentUserId) : ['released' => 0, 'dead' => 0, 'dead_30_days' => 0];
+
 $photoCounts    = getFieldPhotoStatusCounts($currentUserId);
 $photosByArea   = getFieldPhotoCountsByPolygon($currentUserId);
 $rejectedPhotos = getRejectedFieldPhotosForUser($currentUserId);
 $mapPayload     = buildMapPayload($myPolygons);
+
+try {
+    $analytics = getPolygonDashboardAnalytics($currentUserId);
+} catch (Throwable $e) {
+    $analytics = [
+        'polygon_count' => 0, 'total_hectares' => 0.0, 'active_count' => 0,
+        'completed_count' => 0, 'inactive_count' => 0, 'assigned_count' => 0,
+        'source_file_count' => 0, 'formats' => [], 'recent_imports' => [],
+    ];
+}
+$role = 'user';
 $photoMarkers   = getDashboardPhotoMarkers($currentUserId, '/REFO/user/photos/view.php?id=');
 ?>
 <h1>Welcome, <?= h($_SESSION['full_name']) ?></h1>
@@ -49,21 +65,36 @@ $photoMarkers   = getDashboardPhotoMarkers($currentUserId, '/REFO/user/photos/vi
     </div>
 <?php endif; ?>
 
-<h2 class="dash-heading">My Tree Photos</h2>
-<div class="stat-grid">
-    <a class="stat-card stat-pending" href="/REFO/user/photos/index.php">
-        <span class="stat-number"><?= (int)$photoCounts['pending'] ?></span>
-        <span class="stat-label">Pending review</span>
-    </a>
-    <a class="stat-card stat-confirmed" href="/REFO/user/photos/index.php">
-        <span class="stat-number"><?= (int)$photoCounts['confirmed'] ?></span>
-        <span class="stat-label">Confirmed</span>
-    </a>
-    <a class="stat-card stat-rejected" href="/REFO/user/photos/index.php">
-        <span class="stat-number"><?= (int)$photoCounts['rejected'] ?></span>
-        <span class="stat-label">Rejected</span>
-    </a>
-</div>
+<?php
+// KPI cards shown inside the CENRO data overview (this user's own numbers).
+$overviewKpiGroups = [[
+    'title' => 'My tree photos',
+    'cards' => [
+        ['label' => 'Pending review', 'value' => (int)$photoCounts['pending'],   'href' => '/REFO/user/photos/index.php', 'class' => 'stat-pending'],
+        ['label' => 'Confirmed',      'value' => (int)$photoCounts['confirmed'], 'href' => '/REFO/user/photos/index.php', 'class' => 'stat-confirmed'],
+        ['label' => 'Rejected',       'value' => (int)$photoCounts['rejected'],  'href' => '/REFO/user/photos/index.php', 'class' => 'stat-rejected'],
+    ],
+]];
+if ($seedlingsReady && !empty($myPolygons)) {
+    $overviewKpiGroups[] = [
+        'title' => 'My seedlings',
+        'cards' => [
+            ['label' => 'Requests waiting for CENRO', 'value' => (int)$seedlingCounts['pending'],  'href' => '/REFO/user/seedlings/index.php', 'class' => 'stat-pending'],
+            ['label' => 'Approved, to be released',   'value' => (int)$seedlingCounts['approved'], 'href' => '/REFO/user/seedlings/index.php', 'class' => ''],
+            ['label' => 'Seedlings released to me',   'value' => (int)$seedlingTotals['released'], 'href' => '/REFO/user/seedlings/index.php', 'class' => 'stat-confirmed'],
+            ['label' => 'Reported dead',              'value' => (int)$seedlingTotals['dead'],     'href' => '/REFO/user/seedlings/index.php', 'class' => 'stat-rejected'],
+        ],
+        'actions' => [
+            ['label' => 'Request Seedlings',     'href' => '/REFO/user/seedlings/request.php',   'class' => 'btn-primary'],
+            ['label' => 'Report Dead Seedlings', 'href' => '/REFO/user/seedlings/mortality.php', 'class' => ''],
+        ],
+    ];
+}
+
+// Polygon overview, limited to this user's own polygons.
+$dashboardSkipMap = true;
+require __DIR__ . '/../dashboard_polygon_panel.php';
+?>
 
 <?php if (!empty($rejectedPhotos)): ?>
     <h2 class="dash-heading">Needs Your Attention</h2>
@@ -102,14 +133,7 @@ $photoMarkers   = getDashboardPhotoMarkers($currentUserId, '/REFO/user/photos/vi
     </table>
 <?php endif; ?>
 
-<div class="dashboard-map-section">
-    <h2>My Reforestation Areas</h2>
-    <p class="dashboard-map-caption">
-        Your assigned area boundaries with the tree photos you uploaded. Tap a marker to see the photo.
-    </p>
-    <div id="dashboard-map" class="dashboard-map"></div>
-    <?= polygonPhotoLegendHtml() ?>
-</div>
+<?php require __DIR__ . '/../dashboard_map_section.php'; ?>
 
 <?php
-$extraScripts = dashboardMapScripts($mapPayload, $photoMarkers);
+$extraScripts = dashboardMapScripts($mapPayload, $photoMarkers, ['locked' => true]);

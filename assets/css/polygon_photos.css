@@ -1,15 +1,16 @@
 /*
- * Mobile-friendly layout + photo marker styling for the Field User
- * "My Assigned Area" pages. Loaded only on those pages, on top of
- * style.css (which it does not modify).
+ * Photo markers, photo sizing and the phone layout for photo tables.
+ * Loaded on the dashboards and the photo / assigned-area pages, on top of
+ * style.css (platform design tokens). Navigation, page padding and form layout
+ * on phones are handled by style.css and are not repeated here.
  */
 
 /* ---------- Map legend + popup (all screen sizes) ---------- */
 
 .photo-legend {
     font-size: 13px;
-    color: #555555;
-    margin: 8px 0 0;
+    color: var(--color-text-muted);
+    margin: 10px 0 0;
 }
 
 .legend-dot {
@@ -23,9 +24,9 @@
     margin: 0 4px 0 10px;
 }
 
-.legend-pending   { background: #e08a00; }
-.legend-confirmed { background: #1a5c2e; }
-.legend-rejected  { background: #b3261e; }
+.legend-pending   { background: #E08A00; }
+.legend-confirmed { background: var(--color-primary); }
+.legend-rejected  { background: #B3261E; }
 
 .photo-popup {
     font-size: 13px;
@@ -40,18 +41,19 @@
     margin-bottom: 6px;
 }
 
-.dashboard-map {
-    max-width: 100%;
+/* Photo markers must stay clickable above the boundary fill. */
+.leaflet-container .leaflet-interactive.photo-marker {
+    cursor: pointer;
 }
 
-/* ---------- Photo sizing (style.css has no rules for these) ---------- */
+/* ---------- Photo sizing ---------- */
 
 /* Phone photos are thousands of pixels wide: never show them at full size. */
 .photo-thumb {
     width: 80px;
     height: 80px;
     object-fit: cover;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     display: block;
 }
 
@@ -62,91 +64,20 @@
     max-height: 80vh;
     object-fit: contain;
     margin: 0 0 16px;
+    border-radius: var(--radius);
 }
 
 /* ---------- Tablets and phones ---------- */
 
 @media (max-width: 700px) {
 
-    .site-main {
-        padding: 16px;
-    }
-
-    h1 {
-        font-size: 22px;
-    }
-
-    /* Top bar: wrap instead of clipping Logout off screen. */
-    .topbar {
-        flex-wrap: wrap;
-    }
-
-    .topbar-left,
-    .topbar-nav {
-        flex-wrap: wrap;
-        width: 100%;
-    }
-
-    .topbar-item {
-        padding: 12px 14px;
-        flex: 1 1 auto;
-        text-align: center;
-    }
-
-    .topbar-right {
-        width: 100%;
-        justify-content: space-between;
-        padding: 8px 14px;
-        border-top: 1px solid #3a3a3a;
-    }
-
-    /* Detail boxes: label above value. */
-    .details-box {
-        max-width: 100%;
-    }
-
-    .details-row {
-        flex-direction: column;
-        gap: 2px;
-    }
-
-    .details-label {
-        width: auto;
-    }
-
-    /* Bigger, thumb-friendly map and controls. */
-    .dashboard-map {
-        height: 60vh;
-        min-height: 300px;
-    }
-
-    .form {
-        max-width: 100%;
-    }
-
     .form input[type="file"] {
         width: 100%;
         font-size: 16px; /* stops iOS zooming into the field */
     }
 
-    .btn {
-        min-height: 44px;
-        line-height: 26px;
-        text-align: center;
-    }
-
-    .form-actions {
-        flex-direction: column;
-    }
-
-    .form-actions .btn,
-    .toolbar .btn {
-        width: 100%;
-        box-sizing: border-box;
-    }
-
-    /* Any other table (e.g. the Field Photos list) scrolls inside itself
-       instead of stretching the whole page wider than the phone. */
+    /* Any other table scrolls inside itself instead of stretching the
+       whole page wider than the phone. */
     .data-table:not(.photo-table) {
         display: block;
         max-width: 100%;
@@ -161,6 +92,7 @@
     .photo-table td {
         display: block;
         width: 100%;
+        min-width: 0;
         box-sizing: border-box;
     }
 
@@ -170,9 +102,11 @@
     }
 
     .photo-table tr {
-        border: 1px solid #cccccc;
         margin-bottom: 14px;
-        background: #ffffff;
+        border-radius: var(--radius);
+        background-color: var(--color-bg);
+        box-shadow: var(--elevation-1);
+        overflow: hidden;
     }
 
     .photo-table td {
@@ -181,7 +115,7 @@
         align-items: center;
         gap: 12px;
         border: none;
-        border-bottom: 1px solid #eeeeee;
+        border-bottom: 1px solid var(--color-border);
         text-align: right;
     }
 
@@ -191,8 +125,8 @@
 
     .photo-table td::before {
         content: attr(data-label);
-        font-weight: bold;
-        color: #444444;
+        font-weight: 600;
+        color: var(--color-text-muted);
         text-align: left;
         flex: 0 0 38%;
     }
@@ -215,5 +149,105 @@
     .photo-full {
         width: 100%;
         max-height: 70vh;
+    }
+}
+
+/* ---------- Photo calendar (button in the map toolbar + date panel) ---------- */
+
+.polygon-nav-calendar {
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 7px 12px;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+/* Toolbar made by the calendar when a map has no polygon toolbar. */
+.photo-calendar-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin: 14px 0 10px;
+}
+
+.photo-calendar-panel {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 10px;
+    padding: 10px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background-color: var(--color-surface);
+}
+
+.photo-calendar-panel[hidden] {
+    display: none;
+}
+
+.photo-calendar-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.photo-calendar-panel select {
+    min-height: 40px;
+    padding: 6px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font: inherit;
+    font-size: 14px;
+}
+
+.photo-calendar-panel .btn {
+    min-height: 40px;
+    padding: 7px 12px;
+    font-size: 13px;
+}
+
+.photo-calendar-panel .pc-prev,
+.photo-calendar-panel .pc-next {
+    min-width: 40px;
+    padding: 0;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.photo-calendar-panel button:disabled,
+.photo-calendar-panel select:disabled {
+    opacity: 0.48;
+    cursor: not-allowed;
+}
+
+.photo-calendar-count {
+    flex: 1 1 160px;
+    color: var(--color-text-muted);
+    font-size: 13px;
+}
+
+.photo-calendar-count.is-empty {
+    color: #B3261E;
+}
+
+@media (max-width: 640px) {
+    .polygon-nav-calendar {
+        flex: 1 1 auto;
+        white-space: normal;
+    }
+
+    .photo-calendar-row {
+        flex: 1 1 100%;
+    }
+
+    .photo-calendar-row select {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .photo-calendar-row .btn:not(.pc-prev):not(.pc-next) {
+        flex: 1 1 0;
     }
 }

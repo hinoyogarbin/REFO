@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/map_assets.php';
 /**
  * Data for the Admin / Manager / Field User dashboards.
  *
@@ -191,18 +192,20 @@ function getDashboardPhotoMarkers(?int $userId, string $viewUrlBase, int $limit 
 /**
  * Leaflet + shared map helpers + the call that draws the polygon
  * boundaries and photo markers on the dashboard map.
+ *
+ * $mapOptions are the polygon_map.js options: the dashboards use the locked
+ * one-polygon view; admin / manager also get the "View all polygons" toggle.
  */
-function dashboardMapScripts(array $mapPayload, array $photoMarkers): string
+function dashboardMapScripts(array $mapPayload, array $photoMarkers, array $mapOptions = ['locked' => true]): string
 {
     require_once __DIR__ . '/polygon_functions.php';
 
-    return '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" '
-        . 'integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>'
-        . '<script src="/REFO/assets/js/map_layers.js?v=3"></script>'
-        . '<script src="/REFO/assets/js/polygon_map.js?v=1"></script>'
-        . '<script src="/REFO/assets/js/polygon_photo_map.js?v=1"></script>'
+    return leafletScriptTags()
+        . '<script src="/REFO/assets/js/map_layers.js?v=6"></script>'
+        . '<script src="/REFO/assets/js/polygon_map.js?v=7"></script>'
+        . '<script src="/REFO/assets/js/polygon_photo_map.js?v=6"></script>'
         . '<script>initPolygonPhotoMap("dashboard-map", ' . jsonForScript($mapPayload)
-        . ', ' . jsonForScript($photoMarkers) . ');</script>';
+        . ', ' . jsonForScript($photoMarkers) . ', ' . jsonForScript($mapOptions) . ');</script>';
 }
 
 /**
@@ -210,8 +213,7 @@ function dashboardMapScripts(array $mapPayload, array $photoMarkers): string
  */
 function dashboardHead(): string
 {
-    return '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" '
-        . 'integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">'
-        . '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=2">'
-        . '<link rel="stylesheet" href="/REFO/assets/css/dashboard.css?v=1">';
+    return leafletHeadTags()
+        . '<link rel="stylesheet" href="/REFO/assets/css/polygon_photos.css?v=6">'
+        . '<link rel="stylesheet" href="/REFO/assets/css/dashboard.css?v=2">';
 }
