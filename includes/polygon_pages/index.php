@@ -28,6 +28,13 @@ require_once __DIR__ . '/../header.php';
 
 <div class="toolbar">
     <a class="btn btn-primary" href="import.php">Import Polygon</a>
+    <button type="button" class="btn" data-polygon-export
+            data-export-url="export.php<?= h(($q = http_build_query(array_filter(
+                ['search' => $search, 'status' => $statusFilter, 'project' => $projectFilter],
+                function ($v) { return $v !== '' && $v !== null; }
+            ))) !== '' ? '?' . $q : '') ?>"
+            data-stamp="<?= h(date('Ymd_His')) ?>"
+            title="Save the listed polygons as .shp, .shx, .dbf, .prj, .xlsx and .sql files">Export<?= ($search !== '' || $statusFilter !== '' || $projectFilter !== null) ? ' Filtered' : ' All' ?></button>
 
     <form action="index.php" method="get" class="filter-form">
         <input type="search" name="search" placeholder="Search code, name or location"
@@ -127,7 +134,8 @@ require_once __DIR__ . '/../header.php';
 <?php
 $extraScripts = polygonLeafletScripts()
     . '<script>initPolygonMap("polygon-map", ' . jsonForScript($mapPayload) . ', '
-    . '{locked: true, allowOverview: true});</script>';
+    . '{locked: true, allowOverview: true});</script>'
+    . '<script src="/REFO/assets/js/polygon_export.js?v=1"></script>';
 
 require_once __DIR__ . '/../page_end.php';
 ?>

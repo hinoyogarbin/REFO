@@ -165,6 +165,10 @@ require_once __DIR__ . '/../header.php';
 <div class="toolbar">
     <a class="btn btn-primary" href="edit.php?id=<?= (int)$polygon['polygon_id'] ?>">Edit</a>
     <a class="btn" href="assign.php?id=<?= (int)$polygon['polygon_id'] ?>">Assign Steward</a>
+    <button type="button" class="btn" data-polygon-export
+            data-export-url="export.php?id=<?= (int)$polygon['polygon_id'] ?>"
+            data-stamp="<?= h(date('Ymd_His')) ?>"
+            title="Save this polygon as .shp, .shx, .dbf, .prj, .xlsx and .sql files">Export</button>
 
     <form action="status.php" method="post" class="filter-form">
         <input type="hidden" name="id" value="<?= (int)$polygon['polygon_id'] ?>">
@@ -183,7 +187,8 @@ require_once __DIR__ . '/../header.php';
 
 <?php
 $extraScripts = polygonLeafletScripts()
-    . '<script>initPolygonMap("polygon-map", ' . jsonForScript($mapPayload) . ', {locked: true});</script>';
+    . '<script>initPolygonMap("polygon-map", ' . jsonForScript($mapPayload) . ', {locked: true});</script>'
+    . '<script src="/REFO/assets/js/polygon_export.js?v=1"></script>';
 
 require_once __DIR__ . '/../page_end.php';
 ?>

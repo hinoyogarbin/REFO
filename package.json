@@ -1,0 +1,39 @@
+
+{
+  "name": "refo",
+  "version": "1.0.0",
+  "description": "The seedling tables are part of database.sql (see Setup notes).",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "electron-builder --win nsis"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hinoyogarbin/REFO.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/hinoyogarbin/REFO/issues"
+  },
+  "homepage": "https://github.com/hinoyogarbin/REFO#readme",
+  "devDependencies": {
+    "electron": "^45.2.3",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "com.refo.desktop",
+    "productName": "REFO",
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

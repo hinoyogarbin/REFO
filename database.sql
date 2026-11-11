@@ -52,23 +52,7 @@ CREATE TABLE IF NOT EXISTS activity_logs (
 ) ENGINE=InnoDB;
 
 -- ============================================================
--- 3. API tokens (Bearer-token login for the mobile app)
--- ============================================================
-CREATE TABLE IF NOT EXISTS api_tokens (
-    token_id   INT AUTO_INCREMENT PRIMARY KEY,
-    user_id    INT NOT NULL,
-    token      VARCHAR(64) NOT NULL UNIQUE,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    expires_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_token_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-
-    INDEX idx_token (token),
-    INDEX idx_user (user_id)
-) ENGINE=InnoDB;
-
--- ============================================================
--- 4. Projects
+-- 3. Projects
 -- Minimal placeholder owned by the future Project Management
 -- module; polygons.project_id points at it.
 -- ============================================================
@@ -90,7 +74,7 @@ SELECT 'PRJ-001', 'Manolo Fortich Reforestation Program', 'Manolo Fortich, Bukid
 WHERE NOT EXISTS (SELECT 1 FROM projects WHERE project_code = 'PRJ-001');
 
 -- ============================================================
--- 5. CENRO polygons
+-- 4. CENRO polygons
 -- `geometry` is the full GeoJSON boundary in WGS 84 / EPSG:4326
 -- (lon, lat). `original_geometry` is the untouched import in the
 -- file's own CRS. centroid_* / bbox_* are map-fitting helpers only.
@@ -154,7 +138,7 @@ CREATE TABLE IF NOT EXISTS polygons (
 ) ENGINE=InnoDB;
 
 -- ============================================================
--- 6. Field photos (tree photos uploaded by field users)
+-- 5. Field photos (tree photos uploaded by field users)
 -- NOTE: the old SQL files never created this table (they only
 -- ALTERed it), so a fresh install broke. It is now defined here,
 -- with polygon_id built in instead of added later.
@@ -193,7 +177,7 @@ CREATE TABLE IF NOT EXISTS field_photos (
 ) ENGINE=InnoDB;
 
 -- ============================================================
--- 7. Seedlings: requests, release batches, mortality reports
+-- 6. Seedlings: requests, release batches, mortality reports
 -- ============================================================
 
 -- A field user asks CENRO for seedlings for one of their areas.

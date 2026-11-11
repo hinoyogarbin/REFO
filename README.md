@@ -19,8 +19,8 @@ The seedling tables are part of `database.sql` (see Setup notes).
 ## Setup notes
 
 Import **one** file in phpMyAdmin (or `mysql -u root < database.sql`): `database.sql`.
-It creates the `reforestation_db` database and every table - users, activity logs, API
-tokens, projects, polygons, field photos and the seedling tables - and adds the default
+It creates the `reforestation_db` database and every table - users, activity logs,
+projects, polygons, field photos and the seedling tables - and adds the default
 admin account (`admin` / `Admin@123`; change the password after the first login).
 It is safe to run again; it never drops or alters existing data.
 
